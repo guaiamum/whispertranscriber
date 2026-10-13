@@ -20,11 +20,7 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Log.setupFileLogging()
         CrashHandler.shared.setup()
         
-        HotKeyManager.shared.register(chord: SettingsManager.shared.hotkey) {
-             Task { @MainActor in
-                 RecorderViewModel.shared.toggleRecording()
-             }
-        }
+        RecorderViewModel.registerHotkey(SettingsManager.shared.hotkey)
     }
 }
 

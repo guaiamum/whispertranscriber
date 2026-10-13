@@ -27,6 +27,7 @@ class RecorderViewModel: ObservableObject {
     private let engine: SpeechTranscribing
     private let capture: AudioCapturing
     private var recordingURL: URL?
+    private var isHotkeyHeld = false
     private var previewTask: Task<Void, Never>?
     private var lastTranscript = ""
     private(set) var finalizeTask: Task<Void, Never>?
@@ -76,10 +77,43 @@ class RecorderViewModel: ObservableObject {
         }
     }
 
+    /// Registers the global shortcut, wired for both toggle and hold-to-talk.
+    @discardableResult
+    static func registerHotkey(_ chord: String) -> Bool {
+        HotKeyManager.shared.register(
+            chord: chord,
+            handler: { Task { @MainActor in RecorderViewModel.shared.hotkeyPressed() } },
+            onRelease: { Task { @MainActor in RecorderViewModel.shared.hotkeyReleased() } }
+        )
+    }
+
+    func hotkeyPressed() {
+        guard SettingsManager.shared.holdToTalkEnabled else {
+            toggleRecording()
+            return
+        }
+        // Ignore key repeat while the shortcut is held down.
+        guard !isHotkeyHeld else { return }
+        isHotkeyHeld = true
+        if !isRecording {
+            requestAndStart()
+        }
+    }
+
+    func hotkeyReleased() {
+        guard SettingsManager.shared.holdToTalkEnabled else { return }
+        isHotkeyHeld = false
+        if isRecording {
+            stopRecording()
+        }
+    }
+
     private func requestAndStart() {
         requestMicPermission { [weak self] granted in
             guard granted, let self = self else { return }
             DispatchQueue.main.async {
+                // A quick tap in hold-to-talk mode can release before recording starts.
+                if SettingsManager.shared.holdToTalkEnabled && !self.isHotkeyHeld { return }
                 self.beginRecorder()
             }
         }
@@ -180,6 +214,9 @@ class RecorderViewModel: ObservableObject {
 
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(transcript, forType: .string)
+            if SettingsManager.shared.autoPasteEnabled && !pasteIntoFrontmostApp() {
+                Log.general.error("❌ Auto-paste skipped: Accessibility access not granted")
+            }
             RecordingsManager.shared.addTranscription(for: url, text: transcript)
             livePreview = ""
         } catch {

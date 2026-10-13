@@ -60,6 +60,14 @@ final class HotKeyManagerTests: XCTestCase {
         XCTAssertTrue(success)
     }
 
+    func testRegisterWithOptionSpace() {
+        let handler: HotKeyHandler = {}
+
+        let success = hotKeyManager.register(chord: "⌥Space", handler: handler, onRelease: handler)
+
+        XCTAssertTrue(success)
+    }
+
     func testRegisterWithInvalidChordFails() {
         let handler: HotKeyHandler = {}
 

@@ -6,6 +6,8 @@ class SettingsManager: ObservableObject {
     static let shared = SettingsManager()
 
     @AppStorage("toggleHotkey") var hotkey: String = "⌥⌘S"
+    @AppStorage("holdToTalkEnabled") var holdToTalkEnabled: Bool = false
+    @AppStorage("autoPasteEnabled") var autoPasteEnabled: Bool = false
     @AppStorage("transcriptionSuffix") var suffix: String = ""
     @AppStorage("fadeVolumeEnabled") var fadeVolumeEnabled: Bool = true
     @AppStorage("fadeMilliseconds") var fadeMilliseconds: Int = 500

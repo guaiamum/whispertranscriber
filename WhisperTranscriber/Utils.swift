@@ -24,6 +24,26 @@ func requestMicPermission(_ cb: @escaping (Bool) -> Void) {
     }
 }
 
+/// Auto-paste posts a ⌘V keystroke, which macOS gates behind Accessibility access.
+/// Asks for it (once, via the system prompt) when it hasn't been granted yet.
+@discardableResult
+func requestPasteAccess() -> Bool {
+    CGPreflightPostEventAccess() || CGRequestPostEventAccess()
+}
+
+/// Presses ⌘V in whichever app has focus. Returns false when Accessibility access is missing.
+func pasteIntoFrontmostApp() -> Bool {
+    guard requestPasteAccess() else { return false }
+
+    let source = CGEventSource(stateID: .combinedSessionState)
+    for keyDown in [true, false] {
+        let event = CGEvent(keyboardEventSource: source, virtualKey: CGKeyCode(kVK_ANSI_V), keyDown: keyDown)
+        event?.flags = .maskCommand
+        event?.post(tap: .cghidEventTap)
+    }
+    return true
+}
+
 func getRecordingsDirectory() -> URL? {
     guard let applicationSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
         return nil

@@ -90,12 +90,13 @@ struct HotkeyRecorderView: NSViewRepresentable {
             let flags = event.modifierFlags.intersection(.deviceIndependentFlagsMask)
             let chars = event.charactersIgnoringModifiers?.uppercased() ?? ""
             guard let c = chars.first else { return }
+            let key = c == " " ? "Space" : String(c)
             let parts: [String] = [
                 flags.contains(.control) ? "⌃" : "",
                 flags.contains(.option)  ? "⌥" : "",
                 flags.contains(.shift)   ? "⇧" : "",
                 flags.contains(.command) ? "⌘" : "",
-                String(c)
+                key
             ].filter { !$0.isEmpty }
             onChordCaptured?(parts.joined())
         }

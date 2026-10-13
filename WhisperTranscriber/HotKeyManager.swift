@@ -8,13 +8,15 @@ final class HotKeyManager {
 
     private var hotKeyRef: EventHotKeyRef?
     private var hotKeyHandler: HotKeyHandler?
+    private var releaseHandler: HotKeyHandler?
+    private var eventHandlerInstalled = false
 
     private init() {
         // Private initializer for singleton
     }
 
     @discardableResult
-    func register(chord: String, handler: @escaping HotKeyHandler) -> Bool {
+    func register(chord: String, handler: @escaping HotKeyHandler, onRelease: HotKeyHandler? = nil) -> Bool {
         // 1) Figure out modifiers
         let modMap: [(String, UInt32)] = [
             ("⌥", UInt32(optionKey)),
@@ -26,10 +28,14 @@ final class HotKeyManager {
             chord.contains(pair.0) ? acc | pair.1 : acc
         }
 
-        // 2) Pick the *last* letter or digit in the string
-        guard let lastChar = chord.last(where: { $0.isLetter || $0.isNumber }),
-              let vk = virtualKeyCode(for: lastChar)
-        else {
+        // 2) Pick the key: "Space", or the *last* letter or digit in the string
+        let keyCode: UInt32?
+        if chord.hasSuffix("Space") {
+            keyCode = UInt32(kVK_Space)
+        } else {
+            keyCode = chord.last(where: { $0.isLetter || $0.isNumber }).flatMap(virtualKeyCode(for:))
+        }
+        guard let vk = keyCode else {
             Log.hotkey.error("❌ couldn't parse hotkey: \(chord))")
             return false
         }
@@ -39,31 +45,13 @@ final class HotKeyManager {
 
         let hotKeyID = EventHotKeyID(signature: UTGetOSTypeFromString("SwHK"), id: 1)
 
-        var eventType = EventTypeSpec(
-            eventClass: OSType(kEventClassKeyboard),
-            eventKind:  UInt32(kEventHotKeyPressed)
-        )
-
-        InstallEventHandler(GetEventDispatcherTarget(), {
-            (nextHandler, event, userData) -> OSStatus in
-            var hotKeyID = EventHotKeyID()
-            GetEventParameter(
-                event,
-                UInt32(kEventParamDirectObject),
-                UInt32(typeEventHotKeyID),
-                nil,
-                MemoryLayout<EventHotKeyID>.size,
-                nil,
-                &hotKeyID
-            )
-            HotKeyManager.shared.hotKeyHandler?()
-            return noErr
-        }, 1, &eventType, nil, nil)
+        installEventHandlerIfNeeded()
 
         let status = RegisterEventHotKey(vk, modifiers, hotKeyID, GetEventDispatcherTarget(), 0, &hotKeyRef)
 
         if status == noErr {
             self.hotKeyHandler = handler
+            self.releaseHandler = onRelease
             Log.hotkey.info("✅ Registered \(chord)) → keyCode: \(vk)) mods: \(modifiers))")
             return true
         } else {
@@ -77,6 +65,28 @@ final class HotKeyManager {
             UnregisterEventHotKey(hotKeyRef)
             self.hotKeyRef = nil
         }
+    }
+
+    /// One handler serves every registration, routing presses and releases to the current handlers.
+    private func installEventHandlerIfNeeded() {
+        guard !eventHandlerInstalled else { return }
+
+        var eventTypes = [
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyPressed)),
+            EventTypeSpec(eventClass: OSType(kEventClassKeyboard), eventKind: UInt32(kEventHotKeyReleased))
+        ]
+
+        let status = InstallEventHandler(GetEventDispatcherTarget(), {
+            (nextHandler, event, userData) -> OSStatus in
+            if GetEventKind(event) == UInt32(kEventHotKeyReleased) {
+                HotKeyManager.shared.releaseHandler?()
+            } else {
+                HotKeyManager.shared.hotKeyHandler?()
+            }
+            return noErr
+        }, eventTypes.count, &eventTypes, nil, nil)
+
+        eventHandlerInstalled = status == noErr
     }
 
     private func virtualKeyCode(for char: Character) -> UInt32? {

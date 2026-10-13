@@ -112,19 +112,30 @@ struct IdleRecordingView: View {
         VStack(spacing: 8) {
 
 
-            Text("Toggle Shortcut:")
+            Text("Shortcut:")
                 .font(.subheadline)
                 .disabled(true)
 
             HotkeyRecorderView(chord: $settings.hotkey) { newChord in
                 let old = settings.hotkey
                 settings.hotkey = newChord
-                if !HotKeyManager.shared.register(chord: newChord, handler: { Task { @MainActor in RecorderViewModel.shared.toggleRecording() } }) {
+                if !RecorderViewModel.registerHotkey(newChord) {
                     settings.hotkey = old
-                    _ = HotKeyManager.shared.register(chord: old, handler: { Task { @MainActor in RecorderViewModel.shared.toggleRecording() } })
+                    RecorderViewModel.registerHotkey(old)
                 }
             }
             .frame(width: 80, height: 22)
+            .help("Click, then press the new shortcut, e.g. ⌥Space.")
+
+            Toggle("Hold to Talk", isOn: $settings.holdToTalkEnabled)
+                .disabled(isRecording)
+                .help("On: hold the shortcut while you speak, release to transcribe. Off: press once to start, again to stop.")
+
+            Toggle("Paste Automatically", isOn: $settings.autoPasteEnabled)
+                .onChange(of: settings.autoPasteEnabled) { _, enabled in
+                    if enabled { requestPasteAccess() }
+                }
+                .help("Pastes the transcript into the app you're typing in. Needs Accessibility access, asked for the first time.")
 
             Text("Suffix:")
                 .font(.subheadline)

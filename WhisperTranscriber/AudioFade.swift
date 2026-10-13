@@ -2,7 +2,6 @@ import Foundation
 import AppKit
 import AudioToolbox
 import CoreAudio
-import AudioToolbox
 
 class AudioFade {
     static let shared = AudioFade()

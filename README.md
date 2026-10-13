@@ -13,8 +13,8 @@ WhisperTranscriber is a macOS application that allows users to record audio and 
 - Silero VAD trims silence before the final pass and skips recordings with no speech in them.
 - Optional speaker detection, labelling each turn in the final transcript for conversations recorded off the microphone.
 - Deterministic text cleanup: filler removal and whitespace/punctuation tidying, with no LLM involved.
-- Copy the finished transcript to the clipboard.
-- Configure a global hotkey to toggle recording.
+- Copy the finished transcript to the clipboard, and optionally paste it straight into the app you are typing in (needs Accessibility access).
+- Configure a global hotkey from the menu bar, to toggle recording or to hold while you speak.
 
 ## Installation
 
@@ -72,7 +72,7 @@ large model artifacts.
 ## Usage
 
 - Launch the application.
-- Use the configured hotkey (default: ⌥⌘S) to start and stop recording.
+- Use the configured hotkey (default: ⌥⌘S) to start and stop recording, or turn on Hold to Talk and hold it while you speak.
 - The application will transcribe the audio and copy the text to the clipboard.
 
 ## CI Code Signing Settings
