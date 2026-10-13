@@ -101,7 +101,6 @@ class CrashHandler {
             let fileURL = crashDir.appendingPathComponent(filename)
 
             try message.write(to: fileURL, atomically: true, encoding: .utf8)
-            try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
             return fileURL.path
         } catch {
             Log.general.error("Failed to save crash log: \(error.localizedDescription))")

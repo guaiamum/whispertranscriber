@@ -50,7 +50,8 @@ struct RecordingRowView: View {
     }
 
     private func copyToClipboard(text: String) {
-        NSPasteboard.general.copyTransient(text)
+        NSPasteboard.general.clearContents()
+        NSPasteboard.general.setString(text, forType: .string)
         copyButtonText = "Copied!"
         DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
             copyButtonText = "Copy"

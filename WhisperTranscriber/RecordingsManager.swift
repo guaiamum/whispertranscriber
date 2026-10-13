@@ -15,7 +15,6 @@ class RecordingsManager: ObservableObject {
 
     private init() {
         migrateOldRecordings()
-        pruneExpiredRecordings()
         scanForRecordings()
     }
 
@@ -62,6 +61,7 @@ class RecordingsManager: ObservableObject {
     }
 
     func scanForRecordings() {
+        pruneExpiredRecordings()
         guard let recordingsDirectory = recordingsDirectory else {
             Log.recording.error("Error: Could not determine recordings directory.")
             self.recordings = []

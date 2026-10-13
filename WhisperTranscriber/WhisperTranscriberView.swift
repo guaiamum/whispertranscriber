@@ -164,7 +164,7 @@ struct IdleRecordingView: View {
                         Text("After 7 days").tag(7)
                         Text("After 30 days").tag(30)
                     }
-                    .help("Recordings are stored unencrypted on this Mac. Older ones are deleted when the app starts.")
+                    .help("Recordings are stored unencrypted on this Mac. Older ones are deleted automatically.")
 
                     Toggle("Clean Up Text", isOn: $settings.cleanupEnabled)
 

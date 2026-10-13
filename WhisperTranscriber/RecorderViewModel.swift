@@ -178,7 +178,8 @@ class RecorderViewModel: ObservableObject {
             lastTranscript = transcript
             Log.speech.info("📝 Transcription (\(transcript.count) chars)")
 
-            NSPasteboard.general.copyTransient(transcript)
+            NSPasteboard.general.clearContents()
+            NSPasteboard.general.setString(transcript, forType: .string)
             RecordingsManager.shared.addTranscription(for: url, text: transcript)
             livePreview = ""
         } catch {

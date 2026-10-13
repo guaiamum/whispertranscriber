@@ -36,18 +36,13 @@ struct Log {
             .appendingPathComponent("WhisperTranscriber")
     }
 
-    /// Creates the log directory, readable only by the current user.
     static func ensureLogDirectory() -> URL? {
         guard let logDir = logDirectory else { return nil }
         do {
-            try FileManager.default.createDirectory(
-                at: logDir,
-                withIntermediateDirectories: true,
-                attributes: [.posixPermissions: 0o700]
-            )
+            try FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true, attributes: nil)
             return logDir
         } catch {
-            osGeneral.error("Failed to create log directory: \(error.localizedDescription, privacy: .private)")
+            osGeneral.error("Failed to create log directory: \(error.localizedDescription, privacy: .public)")
             return nil
         }
     }
@@ -66,14 +61,14 @@ struct Log {
         pruneCrashLogs(in: logDir)
 
         if !fm.fileExists(atPath: logFile.path) {
-            fm.createFile(atPath: logFile.path, contents: nil, attributes: [.posixPermissions: 0o600])
+            fm.createFile(atPath: logFile.path, contents: nil, attributes: nil)
         }
         do {
             fileHandle = try FileHandle(forWritingTo: logFile)
             fileHandle?.seekToEndOfFile()
             writeToFile("--- App Started ---")
         } catch {
-            osGeneral.error("Failed to setup file logging: \(error.localizedDescription, privacy: .private)")
+            osGeneral.error("Failed to setup file logging: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -104,22 +99,22 @@ struct DualLogger {
     let category: String
     
     func debug(_ message: String) {
-        osLogger.debug("\(message, privacy: .private)")
+        osLogger.debug("\(message, privacy: .public)")
         Log.writeToFile(message, category: category, level: "DEBUG")
     }
     
     func info(_ message: String) {
-        osLogger.info("\(message, privacy: .private)")
+        osLogger.info("\(message, privacy: .public)")
         Log.writeToFile(message, category: category, level: "INFO")
     }
     
     func error(_ message: String) {
-        osLogger.error("\(message, privacy: .private)")
+        osLogger.error("\(message, privacy: .public)")
         Log.writeToFile(message, category: category, level: "ERROR")
     }
     
     func fault(_ message: String) {
-        osLogger.fault("\(message, privacy: .private)")
+        osLogger.fault("\(message, privacy: .public)")
         Log.writeToFile(message, category: category, level: "FAULT")
     }
 }
