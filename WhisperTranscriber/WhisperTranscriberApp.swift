@@ -37,7 +37,7 @@ struct WhisperTranscriberApp: App {
         MenuBarExtra {
             WhisperTranscriberView(showRecords: showRecords)
         } label: {
-            Image(nsImage: tintedImage(named: "icon", color: getForegroundColor(vm: vm)))
+            Image(nsImage: menuBarImage(for: vm.activity))
         }
         .menuBarExtraStyle(.window)
         .commands {
@@ -76,31 +76,44 @@ private extension Color {
 }
 
 private extension WhisperTranscriberApp {
-    func getForegroundColor(vm: RecorderViewModel) -> Color {
-        switch vm.activity {
+    // A nil color means idle: the symbol is a template and follows the menu bar's appearance
+    func menuBarSymbol(for activity: RecorderActivity) -> (name: String, color: Color?) {
+        switch activity {
         case .downloading:
-            return .purple
+            return ("arrow.down.circle", .purple)
         case .preparing:
-            return .red
+            return ("hourglass", .red)
         case .transcribing:
-            return .blue
+            return ("text.bubble", .blue)
         case .recordingLive:
-            return .darkOrange
+            return ("waveform.and.mic", .darkOrange)
         case .recording:
-            return .orange
+            return ("mic.fill", .orange)
         case .idle:
-            return .white
+            return ("waveform", nil)
         }
     }
 
-    func tintedImage(named name: String, color: Color) -> NSImage {
+    func menuBarImage(for activity: RecorderActivity) -> NSImage {
+        let (name, color) = menuBarSymbol(for: activity)
+        let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
+        guard let symbol = NSImage(systemSymbolName: name, accessibilityDescription: "WhisperTranscriber")?
+            .withSymbolConfiguration(config) else { return NSImage() }
+
+        guard let color else {
+            symbol.isTemplate = true
+            return symbol
+        }
+
+        // Bake the color in, since the menu bar renders template images monochrome
         let nsColor = NSColor(color)
-        guard let image = NSImage(named: name)?.copy() as? NSImage else { return NSImage() }
-        image.lockFocus()
-        nsColor.set()
-        let imageRect = NSRect(origin: .zero, size: image.size)
-        imageRect.fill(using: .sourceAtop)
-        image.unlockFocus()
-        return image
+        let tinted = NSImage(size: symbol.size, flipped: false) { rect in
+            symbol.draw(in: rect)
+            nsColor.set()
+            rect.fill(using: .sourceAtop)
+            return true
+        }
+        tinted.isTemplate = false
+        return tinted
     }
 }
