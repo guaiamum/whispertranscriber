@@ -14,6 +14,9 @@ class SettingsManager: ObservableObject {
     @AppStorage("removeUm") var removeUm: Bool = false
     @AppStorage("speakerDetectionEnabled") var speakerDetectionEnabled: Bool = false
 
+    /// Days to keep recordings before they are deleted at launch. 0 keeps them forever.
+    @AppStorage("recordingRetentionDays") var recordingRetentionDays: Int = 0
+
     var cleanupOptions: TextCleanupOptions {
         guard cleanupEnabled else { return .disabled }
         return TextCleanupOptions(enabled: true, removeUm: removeUm)

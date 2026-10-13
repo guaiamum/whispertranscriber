@@ -128,7 +128,7 @@ class RecorderViewModel: ObservableObject {
 
             accumulator.append(text)
             livePreview = accumulator.text
-            Log.speech.info("📝 Live segment: \(text)")
+            Log.speech.info("📝 Live segment (\(text.count) chars)")
             RecordingsManager.shared.addTranscription(for: url, text: livePreview)
         }
     }
@@ -176,10 +176,9 @@ class RecorderViewModel: ObservableObject {
             }
 
             lastTranscript = transcript
-            Log.speech.info("📝 Transcription: \(transcript))")
+            Log.speech.info("📝 Transcription (\(transcript.count) chars)")
 
-            NSPasteboard.general.clearContents()
-            NSPasteboard.general.setString(transcript, forType: .string)
+            NSPasteboard.general.copyTransient(transcript)
             RecordingsManager.shared.addTranscription(for: url, text: transcript)
             livePreview = ""
         } catch {
@@ -198,7 +197,7 @@ class RecorderViewModel: ObservableObject {
                     Log.speech.info("🔇 No speech detected in \(url.lastPathComponent)")
                     return
                 }
-                Log.speech.info("📝 Re-transcription: \(transcript))")
+                Log.speech.info("📝 Re-transcription (\(transcript.count) chars)")
 
                 RecordingsManager.shared.addTranscription(for: url, text: transcript)
             } catch {

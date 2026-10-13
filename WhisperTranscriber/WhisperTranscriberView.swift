@@ -158,6 +158,14 @@ struct IdleRecordingView: View {
                             .frame(width: 80, height: 22)
                     }
 
+                    Picker("Delete Recordings", selection: $settings.recordingRetentionDays) {
+                        Text("Never").tag(0)
+                        Text("After 1 day").tag(1)
+                        Text("After 7 days").tag(7)
+                        Text("After 30 days").tag(30)
+                    }
+                    .help("Recordings are stored unencrypted on this Mac. Older ones are deleted when the app starts.")
+
                     Toggle("Clean Up Text", isOn: $settings.cleanupEnabled)
 
                     if settings.cleanupEnabled {

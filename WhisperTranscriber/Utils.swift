@@ -24,6 +24,18 @@ func requestMicPermission(_ cb: @escaping (Bool) -> Void) {
     }
 }
 
+extension NSPasteboard {
+    /// Copies text flagged as transient so clipboard managers skip it
+    /// (nspasteboard.org convention). Pasting works as normal.
+    func copyTransient(_ text: String) {
+        let transient = NSPasteboard.PasteboardType("org.nspasteboard.TransientType")
+        clearContents()
+        declareTypes([.string, transient], owner: nil)
+        setString(text, forType: .string)
+        setString("", forType: transient)
+    }
+}
+
 func getRecordingsDirectory() -> URL? {
     guard let applicationSupport = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask).first else {
         return nil
@@ -34,7 +46,7 @@ func getRecordingsDirectory() -> URL? {
 
     if !FileManager.default.fileExists(atPath: recordingsDirectory.path) {
         do {
-            try FileManager.default.createDirectory(at: recordingsDirectory, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: recordingsDirectory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         } catch {
             Log.general.error("Error creating recordings directory: \(error.localizedDescription))")
             return nil
@@ -58,7 +70,7 @@ func getModelsDirectory() -> URL? {
 
     if !FileManager.default.fileExists(atPath: modelsDirectory.path) {
         do {
-            try FileManager.default.createDirectory(at: modelsDirectory, withIntermediateDirectories: true, attributes: nil)
+            try FileManager.default.createDirectory(at: modelsDirectory, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
         } catch {
             Log.general.error("Error creating models directory: \(error.localizedDescription))")
             return nil

@@ -1,36 +1,44 @@
 import Foundation
 import AppKit
+import CoreAudio
 
 class AudioFade {
     static let shared = AudioFade()
     private var originalVolume: Int?
     private var fadeTimer: Timer?
 
-    private func runAppleScript(command: String) -> String? {
-        let task = Process()
-        task.launchPath = "/usr/bin/osascript"
-        task.arguments = ["-e", command]
+    private func defaultOutputDevice() -> AudioDeviceID? {
+        var device = AudioDeviceID(0)
+        var size = UInt32(MemoryLayout<AudioDeviceID>.size)
+        var address = AudioObjectPropertyAddress(
+            mSelector: kAudioHardwarePropertyDefaultOutputDevice,
+            mScope: kAudioObjectPropertyScopeGlobal,
+            mElement: kAudioObjectPropertyElementMain)
+        let status = AudioObjectGetPropertyData(AudioObjectID(kAudioObjectSystemObject), &address, 0, nil, &size, &device)
+        return status == noErr && device != 0 ? device : nil
+    }
 
-        let pipe = Pipe()
-        task.standardOutput = pipe
-        task.launch()
-
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        task.waitUntilExit()
-
-        return String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines)
+    private var volumeAddress: AudioObjectPropertyAddress {
+        AudioObjectPropertyAddress(
+            mSelector: kAudioHardwareServiceDeviceProperty_VirtualMainVolume,
+            mScope: kAudioDevicePropertyScopeOutput,
+            mElement: kAudioObjectPropertyElementMain)
     }
 
     func getCurrentVolume() -> Int? {
-        if let volumeStr = runAppleScript(command: "output volume of (get volume settings)"), let volume = Int(volumeStr) {
-            return volume
-        }
-        return nil
+        guard let device = defaultOutputDevice() else { return nil }
+        var address = volumeAddress
+        var volume = Float32(0)
+        var size = UInt32(MemoryLayout<Float32>.size)
+        guard AudioObjectGetPropertyData(device, &address, 0, nil, &size, &volume) == noErr else { return nil }
+        return Int((volume * 100).rounded())
     }
 
     func setVolume(_ volume: Int) {
-        let clampedVolume = max(0, min(100, volume))
-        _ = runAppleScript(command: "set volume output volume \(clampedVolume)")
+        guard let device = defaultOutputDevice() else { return }
+        var address = volumeAddress
+        var scalar = Float32(max(0, min(100, volume))) / 100
+        _ = AudioObjectSetPropertyData(device, &address, 0, nil, UInt32(MemoryLayout<Float32>.size), &scalar)
     }
 
     func fadeOut(duration: TimeInterval) {

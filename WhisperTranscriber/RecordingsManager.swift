@@ -15,6 +15,7 @@ class RecordingsManager: ObservableObject {
 
     private init() {
         migrateOldRecordings()
+        pruneExpiredRecordings()
         scanForRecordings()
     }
 
@@ -41,6 +42,22 @@ class RecordingsManager: ObservableObject {
             }
         } catch {
             Log.recording.error("Error checking old cache directory for migration: \(error.localizedDescription))")
+        }
+    }
+
+    private func pruneExpiredRecordings() {
+        let days = SettingsManager.shared.recordingRetentionDays
+        guard days > 0, let dir = recordingsDirectory,
+              let cutoff = Calendar.current.date(byAdding: .day, value: -days, to: Date()),
+              let files = try? fileManager.contentsOfDirectory(at: dir, includingPropertiesForKeys: [.creationDateKey])
+        else { return }
+
+        for file in files where file.pathExtension == "wav" {
+            let created = (try? file.resourceValues(forKeys: [.creationDateKey]))?.creationDate
+            if let created, created < cutoff {
+                try? fileManager.removeItem(at: file)
+                Log.recording.info("Deleted expired recording: \(file.lastPathComponent)")
+            }
         }
     }
 

@@ -1,7 +1,7 @@
 import os
 import Foundation
 
-/// Centralized logging that writes to both OSLog and a file in ~/Library/Logs
+/// Centralized logging that writes to both OSLog and a file in the app container
 struct Log {
     static let subsystem = "com.joaoanes.WhisperTranscriber"
     
@@ -25,30 +25,69 @@ struct Log {
         return df
     }()
     
-    static func setupFileLogging() {
-        guard let pw = getpwuid(getuid()), let home = pw.pointee.pw_dir else { return }
-        let homeDir = String(cString: home)
-        let logDir = URL(fileURLWithPath: homeDir)
-            .appendingPathComponent("Library")
+    private static let maxLogBytes: UInt64 = 1_000_000
+    private static let maxCrashLogs = 5
+
+    /// Logs live in the app's own sandbox container (Library/Logs/WhisperTranscriber),
+    /// so no sandbox exception is needed.
+    static var logDirectory: URL? {
+        FileManager.default.urls(for: .libraryDirectory, in: .userDomainMask).first?
             .appendingPathComponent("Logs")
             .appendingPathComponent("WhisperTranscriber")
-        
+    }
+
+    /// Creates the log directory, readable only by the current user.
+    static func ensureLogDirectory() -> URL? {
+        guard let logDir = logDirectory else { return nil }
         do {
-            try FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true, attributes: nil)
-            let logFile = logDir.appendingPathComponent("app.log")
-            
-            if !FileManager.default.fileExists(atPath: logFile.path) {
-                FileManager.default.createFile(atPath: logFile.path, contents: nil, attributes: nil)
-            }
-            
+            try FileManager.default.createDirectory(
+                at: logDir,
+                withIntermediateDirectories: true,
+                attributes: [.posixPermissions: 0o700]
+            )
+            return logDir
+        } catch {
+            osGeneral.error("Failed to create log directory: \(error.localizedDescription, privacy: .private)")
+            return nil
+        }
+    }
+
+    static func setupFileLogging() {
+        guard let logDir = ensureLogDirectory() else { return }
+        let logFile = logDir.appendingPathComponent("app.log")
+        let fm = FileManager.default
+
+        // Rotate so logs cannot grow without bound.
+        if let size = (try? fm.attributesOfItem(atPath: logFile.path))?[.size] as? UInt64, size > maxLogBytes {
+            let rotated = logDir.appendingPathComponent("app.log.1")
+            try? fm.removeItem(at: rotated)
+            try? fm.moveItem(at: logFile, to: rotated)
+        }
+        pruneCrashLogs(in: logDir)
+
+        if !fm.fileExists(atPath: logFile.path) {
+            fm.createFile(atPath: logFile.path, contents: nil, attributes: [.posixPermissions: 0o600])
+        }
+        do {
             fileHandle = try FileHandle(forWritingTo: logFile)
             fileHandle?.seekToEndOfFile()
             writeToFile("--- App Started ---")
         } catch {
-            osGeneral.error("Failed to setup file logging: \(error.localizedDescription, privacy: .public)")
+            osGeneral.error("Failed to setup file logging: \(error.localizedDescription, privacy: .private)")
         }
     }
-    
+
+    private static func pruneCrashLogs(in dir: URL) {
+        let fm = FileManager.default
+        guard let files = try? fm.contentsOfDirectory(at: dir, includingPropertiesForKeys: nil) else { return }
+        let crashes = files
+            .filter { $0.lastPathComponent.hasPrefix("Crash_") }
+            .sorted { $0.lastPathComponent > $1.lastPathComponent }
+        for old in crashes.dropFirst(maxCrashLogs) {
+            try? fm.removeItem(at: old)
+        }
+    }
+
     static func writeToFile(_ message: String, category: String = "general", level: String = "INFO") {
         guard let handle = fileHandle else { return }
         let timestamp = dateFormatter.string(from: Date())
@@ -65,22 +104,22 @@ struct DualLogger {
     let category: String
     
     func debug(_ message: String) {
-        osLogger.debug("\(message, privacy: .public)")
+        osLogger.debug("\(message, privacy: .private)")
         Log.writeToFile(message, category: category, level: "DEBUG")
     }
     
     func info(_ message: String) {
-        osLogger.info("\(message, privacy: .public)")
+        osLogger.info("\(message, privacy: .private)")
         Log.writeToFile(message, category: category, level: "INFO")
     }
     
     func error(_ message: String) {
-        osLogger.error("\(message, privacy: .public)")
+        osLogger.error("\(message, privacy: .private)")
         Log.writeToFile(message, category: category, level: "ERROR")
     }
     
     func fault(_ message: String) {
-        osLogger.fault("\(message, privacy: .public)")
+        osLogger.fault("\(message, privacy: .private)")
         Log.writeToFile(message, category: category, level: "FAULT")
     }
 }

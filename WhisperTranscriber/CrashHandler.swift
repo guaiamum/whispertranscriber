@@ -92,25 +92,16 @@ class CrashHandler {
 
     private func saveCrashLog(_ message: String) -> String? {
         let fileManager = FileManager.default
-        // Use getpwuid to get the real home directory, bypassing sandbox container
-        guard let pw = getpwuid(getuid()), let home = pw.pointee.pw_dir else { return nil }
-        let homeDir = String(cString: home)
-        let crashDir = URL(fileURLWithPath: homeDir)
-            .appendingPathComponent("Library")
-            .appendingPathComponent("Logs")
-            .appendingPathComponent("WhisperTranscriber")
+        guard let crashDir = Log.ensureLogDirectory() else { return nil }
 
         do {
-            if !FileManager.default.fileExists(atPath: crashDir.path) {
-                try FileManager.default.createDirectory(at: crashDir, withIntermediateDirectories: true, attributes: nil)
-            }
-
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
             let filename = "Crash_\(dateFormatter.string(from: Date())).txt"
             let fileURL = crashDir.appendingPathComponent(filename)
 
             try message.write(to: fileURL, atomically: true, encoding: .utf8)
+            try? FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: fileURL.path)
             return fileURL.path
         } catch {
             Log.general.error("Failed to save crash log: \(error.localizedDescription))")
