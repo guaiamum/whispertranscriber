@@ -71,36 +71,13 @@ private extension WhisperTranscriberApp {
     }
 }
 
-private extension Color {
-    static let darkOrange = Color(red: 0.72, green: 0.28, blue: 0.0)
-}
-
 private extension WhisperTranscriberApp {
-    // A nil color means idle: the symbol is a template and follows the menu bar's appearance
-    func menuBarSymbol(for activity: RecorderActivity) -> (name: String, color: Color?) {
-        switch activity {
-        case .downloading:
-            return ("arrow.down.circle", .purple)
-        case .preparing:
-            return ("hourglass", .red)
-        case .transcribing:
-            return ("text.bubble", .blue)
-        case .recordingLive:
-            return ("waveform.and.mic", .darkOrange)
-        case .recording:
-            return ("mic.fill", .orange)
-        case .idle:
-            return ("waveform", nil)
-        }
-    }
-
     func menuBarImage(for activity: RecorderActivity) -> NSImage {
-        let (name, color) = menuBarSymbol(for: activity)
         let config = NSImage.SymbolConfiguration(pointSize: 15, weight: .regular)
-        guard let symbol = NSImage(systemSymbolName: name, accessibilityDescription: "WhisperTranscriber")?
+        guard let symbol = NSImage(systemSymbolName: activity.symbolName, accessibilityDescription: "WhisperTranscriber")?
             .withSymbolConfiguration(config) else { return NSImage() }
 
-        guard let color else {
+        guard let color = activity.tint else {
             symbol.isTemplate = true
             return symbol
         }
