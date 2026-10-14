@@ -30,18 +30,19 @@ struct HotkeyRecorderView: NSViewRepresentable {
 
         override init(frame frameRect: NSRect = .zero) {
             super.init(frame: frameRect)
-            wantsLayer = true
-            layer?.cornerRadius = 4
-            layer?.borderWidth = 1
-            layer?.borderColor = NSColor.separatorColor.cgColor
-            // dynamic control background that adapts to light/dark
-            layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
+            setUpLayer()
         }
 
         required init?(coder: NSCoder) {
             super.init(coder: coder)
+            setUpLayer()
+        }
+
+        // Styled like a keycap, with a dynamic background that adapts to light/dark
+        private func setUpLayer() {
             wantsLayer = true
-            layer?.cornerRadius = 4
+            layer?.cornerRadius = 6
+            layer?.cornerCurve = .continuous
             layer?.borderWidth = 1
             layer?.borderColor = NSColor.separatorColor.cgColor
             layer?.backgroundColor = NSColor.controlBackgroundColor.cgColor
@@ -50,22 +51,23 @@ struct HotkeyRecorderView: NSViewRepresentable {
         override func draw(_ dirtyRect: NSRect) {
             super.draw(dirtyRect)
 
-            // highlight border when focused
-            layer?.borderColor = (window?.firstResponder === self)
+            // highlight border when focused, and prompt for the new chord
+            let isFocused = window?.firstResponder === self
+            layer?.borderColor = isFocused
                 ? NSColor.keyboardFocusIndicatorColor.cgColor
                 : NSColor.separatorColor.cgColor
 
-            // draw the chord text
+            // draw the chord text, centered, in the panel's rounded font
+            let base = NSFont.systemFont(ofSize: NSFont.systemFontSize, weight: .medium)
+            let font = base.fontDescriptor.withDesign(.rounded)
+                .flatMap { NSFont(descriptor: $0, size: base.pointSize) } ?? base
             let attrs: [NSAttributedString.Key:Any] = [
-                .font: NSFont.monospacedSystemFont(
-                    ofSize: NSFont.systemFontSize,
-                    weight: .regular
-                ),
-                .foregroundColor: NSColor.labelColor
+                .font: font,
+                .foregroundColor: isFocused ? NSColor.secondaryLabelColor : NSColor.labelColor
             ]
-            let str = NSAttributedString(string: chordToShow, attributes: attrs)
+            let str = NSAttributedString(string: isFocused ? "Type keys…" : chordToShow, attributes: attrs)
             let size = str.size()
-            let x: CGFloat = 6
+            let x = (bounds.width - size.width) / 2
             let y = (bounds.height - size.height) / 2
             str.draw(at: CGPoint(x: x, y: y))
         }
