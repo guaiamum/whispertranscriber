@@ -1,0 +1,44 @@
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: macos-26
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Select Xcode version
+        uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: "26.0.1"
+
+      # The tests are hosted in the full app, whose resource phase copies ../../Documents/hf
+      - name: Prepare Hugging Face resources directory
+        run: |
+          mkdir -p /Users/runner/work/Documents/hf
+
+      - name: Resolve Swift Package dependencies
+        run: |
+          xcodebuild \
+            -project WhisperTranscriber.xcodeproj \
+            -resolvePackageDependencies
+
+      - name: Run tests
+        run: |
+          xcodebuild test \
+            -project WhisperTranscriber.xcodeproj \
+            -scheme WhisperTranscriber \
+            -destination 'platform=macOS' \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY=""

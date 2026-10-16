@@ -74,4 +74,4 @@ Folder names are FluidAudio's cache names (the HF repo name without `-coreml`). 
 - **Never log transcript text.** Log character counts instead, as in `"📝 Transcription (\(text.count) chars)"`. `Log.general/speech/recording/hotkey` write to OSLog with `.public` privacy *and* to `Library/Logs/WhisperTranscriber/app.log`, so anything logged is readable.
 - Tests use XCTest against the real singletons and real `UserDefaults`. Save and restore any setting a test mutates in `setUp`/`tearDown`.
 - `SpokenAudioIntegrationTests` synthesize speech with `say` and `afconvert` and run the real engine. They `XCTSkip` unless Parakeet models exist in the test host's `Application Support/WhisperTranscriber/Models`.
-- CI (`.github/workflows/build.yml`, `macos-26`, Xcode 26.0.1) builds the full app, runs the tests, then builds Lite, all unsigned and with an empty `hf` directory.
+- CI runs on `macos-26` with Xcode 26.0.1, unsigned and with an empty `hf` directory. `build.yml` builds both apps, and `tests.yml` runs the tests. Both workflows are disabled in the GitHub fork's Actions settings, so re-enable them there (`gh workflow enable`) before relying on them.
