@@ -15,6 +15,11 @@ final class HotKeyManager {
         // Private initializer for singleton
     }
 
+    /// Shift alone isn't enough: ⇧S or a bare Space would take that key from every app.
+    static func hasRequiredModifier(_ chord: String) -> Bool {
+        ["⌃", "⌥", "⌘"].contains { chord.contains($0) }
+    }
+
     @discardableResult
     func register(chord: String, handler: @escaping HotKeyHandler, onRelease: HotKeyHandler? = nil) -> Bool {
         // 1) Figure out modifiers
@@ -37,6 +42,10 @@ final class HotKeyManager {
         }
         guard let vk = keyCode else {
             Log.hotkey.error("❌ couldn't parse hotkey: \(chord))")
+            return false
+        }
+        guard HotKeyManager.hasRequiredModifier(chord) else {
+            Log.hotkey.error("❌ hotkey needs ⌃, ⌥ or ⌘: \(chord)")
             return false
         }
 

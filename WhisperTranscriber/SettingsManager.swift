@@ -5,7 +5,8 @@ import SwiftUI
 class SettingsManager: ObservableObject {
     static let shared = SettingsManager()
 
-    @AppStorage("toggleHotkey") var hotkey: String = "⌥⌘S"
+    nonisolated static let defaultHotkey = "⌥⌘S"
+    @AppStorage("toggleHotkey") var hotkey: String = SettingsManager.defaultHotkey
     @AppStorage("holdToTalkEnabled") var holdToTalkEnabled: Bool = false
     @AppStorage("autoPasteEnabled") var autoPasteEnabled: Bool = false
     @AppStorage("transcriptionSuffix") var suffix: String = ""

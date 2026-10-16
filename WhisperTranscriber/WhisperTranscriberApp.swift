@@ -20,7 +20,12 @@ class AppDelegate: NSObject, NSApplicationDelegate {
         Log.setupFileLogging()
         CrashHandler.shared.setup()
         
-        RecorderViewModel.registerHotkey(SettingsManager.shared.hotkey)
+        let settings = SettingsManager.shared
+        // A shortcut saved before modifiers were required would fail to register
+        if !HotKeyManager.hasRequiredModifier(settings.hotkey) {
+            settings.hotkey = SettingsManager.defaultHotkey
+        }
+        RecorderViewModel.registerHotkey(settings.hotkey)
     }
 }
 

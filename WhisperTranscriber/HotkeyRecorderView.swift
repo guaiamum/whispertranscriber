@@ -100,7 +100,10 @@ struct HotkeyRecorderView: NSViewRepresentable {
                 flags.contains(.command) ? "⌘" : "",
                 key
             ].filter { !$0.isEmpty }
-            onChordCaptured?(parts.joined())
+            let chord = parts.joined()
+            // Keep waiting for a chord the shortcut can actually use, without beeping
+            guard HotKeyManager.hasRequiredModifier(chord) else { return }
+            onChordCaptured?(chord)
         }
 
         override var intrinsicContentSize: NSSize {

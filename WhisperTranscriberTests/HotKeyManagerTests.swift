@@ -1,4 +1,5 @@
 import XCTest
+import AppKit
 import Carbon
 @testable import WhisperTranscriber
 
@@ -133,5 +134,48 @@ final class HotKeyManagerTests: XCTestCase {
         let success = hotKeyManager.register(chord: "⌘⌥⌃⇧X", handler: handler)
 
         XCTAssertTrue(success)
+    }
+
+    func testRegisterWithBareSpaceFails() {
+        XCTAssertFalse(hotKeyManager.register(chord: "Space", handler: {}))
+    }
+
+    func testRegisterWithBareLetterFails() {
+        XCTAssertFalse(hotKeyManager.register(chord: "S", handler: {}))
+    }
+
+    func testRegisterWithShiftOnlyFails() {
+        XCTAssertFalse(hotKeyManager.register(chord: "⇧S", handler: {}))
+        XCTAssertFalse(hotKeyManager.register(chord: "⇧Space", handler: {}))
+    }
+
+    func testRequiredModifierNeedsControlOptionOrCommand() {
+        for chord in ["⌃A", "⌥Space", "⌘1", "⌘⌥⌃⇧X"] {
+            XCTAssertTrue(HotKeyManager.hasRequiredModifier(chord), chord)
+        }
+        for chord in ["Space", "S", "⇧S", ""] {
+            XCTAssertFalse(HotKeyManager.hasRequiredModifier(chord), chord)
+        }
+    }
+
+    @MainActor
+    func testKeyCaptureIgnoresKeysWithoutAModifier() {
+        let view = HotkeyRecorderView.KeyCaptureView()
+        var captured: [String] = []
+        view.onChordCaptured = { captured.append($0) }
+
+        view.keyDown(with: keyEvent(" ", keyCode: 49, flags: []))
+        view.keyDown(with: keyEvent("s", keyCode: 1, flags: [.shift]))
+        view.keyDown(with: keyEvent(" ", keyCode: 49, flags: [.option]))
+
+        XCTAssertEqual(captured, ["⌥Space"])
+    }
+
+    private func keyEvent(_ characters: String, keyCode: UInt16, flags: NSEvent.ModifierFlags) -> NSEvent {
+        NSEvent.keyEvent(
+            with: .keyDown, location: .zero, modifierFlags: flags, timestamp: 0,
+            windowNumber: 0, context: nil, characters: characters,
+            charactersIgnoringModifiers: characters, isARepeat: false, keyCode: keyCode
+        )!
     }
 }

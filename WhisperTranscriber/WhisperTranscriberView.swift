@@ -117,7 +117,7 @@ struct IdleRecordingView: View {
                     }
                     .frame(width: 96, height: 24)
                 }
-                .help("Click, then press the new shortcut, e.g. ⌥Space.")
+                .help("Click, then press a shortcut that uses ⌃, ⌥ or ⌘, e.g. ⌥Space.")
 
                 RowDivider()
 
