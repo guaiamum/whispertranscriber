@@ -120,6 +120,8 @@ class RecorderViewModel: ObservableObject {
     }
 
     func beginRecorder() {
+        // A press, release and press can queue two starts before the first one runs
+        guard !isRecording else { return }
         let url = tempURL()
 
         let live = SettingsManager.shared.liveTranscriptionEnabled

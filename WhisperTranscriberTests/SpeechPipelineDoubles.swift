@@ -7,9 +7,11 @@ final class FakeAudioCapture: AudioCapturing, @unchecked Sendable {
 
     private(set) var samples: [Float] = []
     private(set) var emittedChunks: Bool?
+    private(set) var startCount = 0
     private var continuation: AsyncStream<[Float]>.Continuation?
 
     func start(writingTo url: URL, emittingChunks: Bool) throws -> AsyncStream<[Float]>? {
+        startCount += 1
         samples = []
         emittedChunks = emittingChunks
 
