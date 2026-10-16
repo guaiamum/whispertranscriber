@@ -31,9 +31,27 @@ func requestPasteAccess() -> Bool {
     CGPreflightPostEventAccess() || CGRequestPostEventAccess()
 }
 
-/// Presses ⌘V in whichever app has focus. Returns false when Accessibility access is missing.
-func pasteIntoFrontmostApp() -> Bool {
-    guard requestPasteAccess() else { return false }
+enum PasteOutcome: Equatable {
+    case pasted
+    case skippedOwnApp
+    case accessibilityDenied
+}
+
+/// True when WhisperTranscriber's own popover or window has keyboard focus,
+/// where a ⌘V would drop the transcript into a settings field.
+func isOwnAppFocused(
+    frontmostPID: pid_t? = NSWorkspace.shared.frontmostApplication?.processIdentifier,
+    ownPID: pid_t = ProcessInfo.processInfo.processIdentifier,
+    hasKeyWindow: Bool = NSApp.keyWindow != nil
+) -> Bool {
+    hasKeyWindow || frontmostPID == ownPID
+}
+
+/// Presses ⌘V in whichever app has focus, unless that app is WhisperTranscriber itself.
+@MainActor
+func pasteIntoFrontmostApp(ownAppFocused: Bool = isOwnAppFocused()) -> PasteOutcome {
+    guard !ownAppFocused else { return .skippedOwnApp }
+    guard requestPasteAccess() else { return .accessibilityDenied }
 
     let source = CGEventSource(stateID: .combinedSessionState)
     for keyDown in [true, false] {
@@ -41,7 +59,7 @@ func pasteIntoFrontmostApp() -> Bool {
         event?.flags = .maskCommand
         event?.post(tap: .cghidEventTap)
     }
-    return true
+    return .pasted
 }
 
 func getRecordingsDirectory() -> URL? {

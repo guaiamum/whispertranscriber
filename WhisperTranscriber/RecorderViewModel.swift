@@ -211,8 +211,15 @@ class RecorderViewModel: ObservableObject {
 
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(transcript, forType: .string)
-            if SettingsManager.shared.autoPasteEnabled && !pasteIntoFrontmostApp() {
-                Log.general.error("❌ Auto-paste skipped: Accessibility access not granted")
+            if SettingsManager.shared.autoPasteEnabled {
+                switch pasteIntoFrontmostApp() {
+                case .pasted:
+                    break
+                case .skippedOwnApp:
+                    Log.general.info("📋 Auto-paste skipped: WhisperTranscriber has focus")
+                case .accessibilityDenied:
+                    Log.general.error("❌ Auto-paste skipped: Accessibility access not granted")
+                }
             }
             RecordingsManager.shared.addTranscription(for: url, text: transcript)
             livePreview = ""
