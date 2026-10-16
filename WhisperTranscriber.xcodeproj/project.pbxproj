@@ -8,11 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		44104C7F2DC403F400993142 /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 44104C7E2DC403F400993142 /* FluidAudio */; };
-		44104C8D2DC4111700993142 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44104C8B2DC4111700993142 /* AudioToolbox.framework */; };
-		44104C8E2DC4111700993142 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44104C8C2DC4111700993142 /* AudioUnit.framework */; };
 		44104DA02DC6EB9700993142 /* hf in Resources */ = {isa = PBXBuildFile; fileRef = 44104D9F2DC6EB9700993142 /* hf */; };
-		44104DB82DC6F81B00993142 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44104C8B2DC4111700993142 /* AudioToolbox.framework */; };
-		44104DB92DC6F81B00993142 /* AudioUnit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 44104C8C2DC4111700993142 /* AudioUnit.framework */; };
 		44104DBA2DC6F81B00993142 /* FluidAudio in Frameworks */ = {isa = PBXBuildFile; productRef = 44104DB52DC6F81B00993142 /* FluidAudio */; };
 /* End PBXBuildFile section */
 
@@ -28,8 +24,6 @@
 
 /* Begin PBXFileReference section */
 		44104C6E2DC402A000993142 /* WhisperTranscriber.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhisperTranscriber.app; sourceTree = BUILT_PRODUCTS_DIR; };
-		44104C8B2DC4111700993142 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
-		44104C8C2DC4111700993142 /* AudioUnit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioUnit.framework; path = System/Library/Frameworks/AudioUnit.framework; sourceTree = SDKROOT; };
 		44104D9F2DC6EB9700993142 /* hf */ = {isa = PBXFileReference; lastKnownFileType = folder; name = hf; path = ../../Documents/hf; sourceTree = "<group>"; };
 		44104DC02DC6F81B00993142 /* WhisperTranscriberLite.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = WhisperTranscriberLite.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		443C98872E9AE60E001C3810 /* WhisperTranscriberTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WhisperTranscriberTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -76,8 +70,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				44104C8D2DC4111700993142 /* AudioToolbox.framework in Frameworks */,
-				44104C8E2DC4111700993142 /* AudioUnit.framework in Frameworks */,
 				44104C7F2DC403F400993142 /* FluidAudio in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -86,8 +78,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				44104DB82DC6F81B00993142 /* AudioToolbox.framework in Frameworks */,
-				44104DB92DC6F81B00993142 /* AudioUnit.framework in Frameworks */,
 				44104DBA2DC6F81B00993142 /* FluidAudio in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -126,8 +116,6 @@
 		44104C8A2DC4111700993142 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				44104C8B2DC4111700993142 /* AudioToolbox.framework */,
-				44104C8C2DC4111700993142 /* AudioUnit.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";

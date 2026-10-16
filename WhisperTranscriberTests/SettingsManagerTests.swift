@@ -30,10 +30,6 @@ final class SettingsManagerTests: XCTestCase {
         XCTAssertTrue(settingsManager.liveTranscriptionEnabled)
     }
 
-    func testFadeMillisecondsPropertyExists() {
-        XCTAssertGreaterThanOrEqual(settingsManager.fadeMilliseconds, 0)
-    }
-
     func testHotkeyCanBeUpdated() {
         settingsManager.hotkey = "⌘R"
 
@@ -57,17 +53,5 @@ final class SettingsManagerTests: XCTestCase {
         settingsManager.cleanupEnabled = true
 
         XCTAssertTrue(settingsManager.cleanupOptions.enabled)
-    }
-
-    func testFadeMillisecondsCanBeUpdated() {
-        settingsManager.fadeMilliseconds = 1000
-
-        XCTAssertEqual(settingsManager.fadeMilliseconds, 1000)
-    }
-
-    func testFadeMillisecondsAcceptsZero() {
-        settingsManager.fadeMilliseconds = 0
-
-        XCTAssertEqual(settingsManager.fadeMilliseconds, 0)
     }
 }

@@ -174,26 +174,6 @@ struct IdleRecordingView: View {
                 if showAdvanced {
                     RowDivider()
 
-                    ToggleRow(title: "Fade Volume", systemImage: "speaker.wave.2", isOn: $settings.fadeVolumeEnabled)
-
-                    if settings.fadeVolumeEnabled {
-                        RowDivider()
-
-                        SettingRow(title: "Fade Duration", systemImage: "timer") {
-                            HStack(spacing: 4) {
-                                TextField("Fade Milliseconds", value: $settings.fadeMilliseconds, format: .number)
-                                    .labelsHidden()
-                                    .textFieldStyle(.roundedBorder)
-                                    .multilineTextAlignment(.trailing)
-                                    .frame(width: 60)
-                                Text("ms")
-                                    .foregroundStyle(.secondary)
-                            }
-                        }
-                    }
-
-                    RowDivider()
-
                     SettingRow(title: "Delete Recordings", systemImage: "trash") {
                         Picker("Delete Recordings", selection: $settings.recordingRetentionDays) {
                             Text("Never").tag(0)

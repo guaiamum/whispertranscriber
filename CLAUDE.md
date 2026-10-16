@@ -46,7 +46,7 @@ The version lives in `MARKETING_VERSION` / `CURRENT_PROJECT_VERSION` in `project
 
 **Entry point.** `WhisperTranscriberApp.swift` hosts the `MenuBarExtra`. Its icon comes from `RecorderActivity` (`symbolName`/`tint` in `RecorderActivity+Appearance.swift`) and is tinted manually, because the menu bar renders template images in one color. `AppDelegate` holds a `ProcessInfo` activity and disables automatic termination so macOS doesn't reap the agent. It also sets up file logging and `CrashHandler` and registers the hotkey.
 
-**Shared state.** Shared state lives in singletons: `RecorderViewModel.shared`, `SettingsManager.shared`, `RecordingsManager.shared`, `HotKeyManager.shared` and `AudioFade.shared`. The first three are `@MainActor` `ObservableObject`s. `RecorderViewModel.activity` derives one `RecorderActivity` from its flags, and the UI keys off it.
+**Shared state.** Shared state lives in singletons: `RecorderViewModel.shared`, `SettingsManager.shared`, `RecordingsManager.shared` and `HotKeyManager.shared`. The first three are `@MainActor` `ObservableObject`s. `RecorderViewModel.activity` derives one `RecorderActivity` from its flags, and the UI keys off it.
 
 **Recording flow** (`RecorderViewModel`):
 1. `HotKeyManager` registers a Carbon `RegisterEventHotKey` from a chord string: modifier glyphs `⌥⌃⇧⌘`, then the last letter or digit, or a `Space` suffix. It reports both press and release, so `hotkeyPressed`/`hotkeyReleased` can implement either toggle or hold-to-talk.

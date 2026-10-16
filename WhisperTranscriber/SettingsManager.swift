@@ -10,8 +10,6 @@ class SettingsManager: ObservableObject {
     @AppStorage("holdToTalkEnabled") var holdToTalkEnabled: Bool = false
     @AppStorage("autoPasteEnabled") var autoPasteEnabled: Bool = false
     @AppStorage("transcriptionSuffix") var suffix: String = ""
-    @AppStorage("fadeVolumeEnabled") var fadeVolumeEnabled: Bool = true
-    @AppStorage("fadeMilliseconds") var fadeMilliseconds: Int = 500
     @AppStorage("liveTranscriptionEnabled") var liveTranscriptionEnabled: Bool = true
     @AppStorage("cleanupEnabled") var cleanupEnabled: Bool = true
     @AppStorage("removeUm") var removeUm: Bool = false

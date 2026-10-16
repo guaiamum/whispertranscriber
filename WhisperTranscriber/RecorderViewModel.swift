@@ -125,7 +125,6 @@ class RecorderViewModel: ObservableObject {
         let live = SettingsManager.shared.liveTranscriptionEnabled
 
         do {
-            fadeOutIfEnabled()
             let chunks = try capture.start(writingTo: url, emittingChunks: live)
             recordingURL = url
             isRecording = true
@@ -140,7 +139,6 @@ class RecorderViewModel: ObservableObject {
         } catch {
             Log.recording.error("❌ Failed to set up recorder: \(error.localizedDescription))")
             errorMessage = "Could not start recording: \(error.localizedDescription)"
-            fadeInIfEnabled()
         }
     }
 
@@ -170,7 +168,6 @@ class RecorderViewModel: ObservableObject {
     func stopRecording() {
         capture.stop()
         isRecording = false
-        fadeInIfEnabled()
 
         guard let url = recordingURL else {
             Log.recording.error("❌ No audio file URL")
@@ -243,15 +240,5 @@ class RecorderViewModel: ObservableObject {
                 errorMessage = "Re-transcription error: \(error.localizedDescription)"
             }
         }
-    }
-
-    private func fadeOutIfEnabled() {
-        guard SettingsManager.shared.fadeVolumeEnabled else { return }
-        AudioFade.shared.fadeOut(duration: Double(SettingsManager.shared.fadeMilliseconds) / 1000.0)
-    }
-
-    private func fadeInIfEnabled() {
-        guard SettingsManager.shared.fadeVolumeEnabled else { return }
-        AudioFade.shared.fadeIn(duration: Double(SettingsManager.shared.fadeMilliseconds) / 1000.0)
     }
 }
